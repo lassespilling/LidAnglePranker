@@ -1,22 +1,22 @@
-# Lid Angle Sensor
+# Lid Angle Pranker
 
-Hi, I’m Sam Gold. Did you know that you have ~rights~ a lid angle sensor in your MacBook? [The ~Constitution~ human interface device utility says you do.](https://youtu.be/wqnHtGgVAUE?t=21)
+Hi, I’m Sam Gold. Did you know that you have ~rights~ a Lid Angle Pranker in your MacBook? [The ~Constitution~ human interface device utility says you do.](https://youtu.be/wqnHtGgVAUE?t=21)
 
 This is a little utility that shows the angle from the sensor and, optionally, plays a wooden door creaking sound if you adjust it reeaaaaaal slowly.
 
 ## FAQ
 
-**What is a lid angle sensor?**
+**What is a Lid Angle Pranker?**
 
 Despite what the name would have you believe, it is a sensor that detects the angle of the lid.
 
-**Which devices have a lid angle sensor?**
+**Which devices have a Lid Angle Pranker?**
 
-It was introduced with the 2019 16-inch MacBook Pro. If your laptop is newer, you probably have it. [People have reported](https://github.com/samhenrigold/LidAngleSensor/issues/13) that it **does not work on M1 devices**, I have not yet figured out a fix.
+It was introduced with the 2019 16-inch MacBook Pro. If your laptop is newer, you probably have it. [People have reported](https://github.com/samhenrigold/LidAnglePranker/issues/13) that it **does not work on M1 devices**, I have not yet figured out a fix.
 
 **My laptop should have it, why doesn't it show up?**
 
-I've only tested this on my M4 MacBook Pro and have hard-coded it to look for a specific sensor. If that doesn't work, try running [this script](https://gist.github.com/samhenrigold/42b5a92d1ee8aaf2b840be34bff28591) and report the output in [an issue](https://github.com/samhenrigold/LidAngleSensor/issues/new/choose).
+I've only tested this on my M4 MacBook Pro and have hard-coded it to look for a specific sensor. If that doesn't work, try running [this script](https://gist.github.com/samhenrigold/42b5a92d1ee8aaf2b840be34bff28591) and report the output in [an issue](https://github.com/samhenrigold/LidAnglePranker/issues/new/choose).
 
 Known problematic models:
 
@@ -27,7 +27,7 @@ Known problematic models:
 
 ~~Not yet tested. Feel free to slam your computer into your desk and make a PR with your results.~~
 
-[It totally works](https://github.com/samhenrigold/LidAngleSensor/issues/33). If it doesn't work for you, try slamming your computer harder?
+[It totally works](https://github.com/samhenrigold/LidAnglePranker/issues/33). If it doesn't work for you, try slamming your computer harder?
 
 **Why?**
 
@@ -59,14 +59,14 @@ Yes, never click "Start Audio". But this energy isn't encouraged.
 
 ## Building
 
-According to [this issue](https://github.com/samhenrigold/LidAngleSensor/issues/12), building requires having Xcode installed. I've only tested this on Xcode 26. YMMV.
+According to [this issue](https://github.com/samhenrigold/LidAnglePranker/issues/12), building requires having Xcode installed. I've only tested this on Xcode 26. YMMV.
 
 ## Installation
 
 Via Homebrew:
 
 ```shell
-brew install lidanglesensor
+brew install LidAnglePranker
 ```
 
 ## Related projects

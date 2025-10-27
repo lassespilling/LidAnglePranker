@@ -1,6 +1,6 @@
 //
 //  AppDelegate.h
-//  LidAngleSensor
+//  LidAnglePranker
 //
 //  Created by Sam on 2025-09-06.
 //
@@ -9,7 +9,6 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
-@property (strong, nonatomic) NSWindow *window;
+@property(strong, nonatomic) NSWindow *window;
 
 @end
-

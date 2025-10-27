@@ -34,25 +34,13 @@
 @property (assign, nonatomic) BOOL isLoopEnabled;
 @property (strong, nonatomic) NSButton *loopToggleButton;
 @property (strong, nonatomic) AVAudioPlayer *audioPlayer;
-@property (assign, nonatomic) NSInteger currentBuiltInSoundIndex;
-@property (strong, nonatomic) NSArray<NSString *> *builtInSoundFiles;
-@property (strong, nonatomic) NSButton *cycleBuiltInSoundButton;
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    // Initialize built-in sound files array
-    self.builtInSoundFiles = @[
-        @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger.mp3",
-        @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger2.mp3",
-        @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger3.mp3",
-        @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger4.mp3"
-    ];
-    
-    // Set default built-in sound (first one)
-    self.currentBuiltInSoundIndex = 0;
-    self.selectedAudioFile = self.builtInSoundFiles[self.currentBuiltInSoundIndex];
+    // Set default built-in sound
+    self.selectedAudioFile = @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger.mp3";
 
     [self createWindow];
     [self initializeLidSensor];
@@ -132,16 +120,6 @@
     [self.soundTypeSelector setTranslatesAutoresizingMaskIntoConstraints:NO];
     [contentView addSubview:self.soundTypeSelector];
 
-    // Create built-in sound cycle button
-    self.cycleBuiltInSoundButton = [[NSButton alloc] init];
-    [self.cycleBuiltInSoundButton setTitle:@"Next Built-in Sound"];
-    [self.cycleBuiltInSoundButton setBezelStyle:NSBezelStyleRounded];
-    [self.cycleBuiltInSoundButton setTarget:self];
-    [self.cycleBuiltInSoundButton setAction:@selector(cycleBuiltInSound:)];
-    [self.cycleBuiltInSoundButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [self.cycleBuiltInSoundButton setHidden:NO]; // Visible by default for built-in sound
-    [contentView addSubview:self.cycleBuiltInSoundButton];
-    
     // Create sound file selection button
     self.selectSoundButton = [[NSButton alloc] init];
     [self.selectSoundButton setTitle:@"Select Custom File"];
@@ -224,12 +202,6 @@
         [self.soundTypeSelector.widthAnchor constraintEqualToConstant:140],
         [self.soundTypeSelector.heightAnchor constraintEqualToConstant:28],
 
-        // Cycle built-in sound button
-        [self.cycleBuiltInSoundButton.topAnchor constraintEqualToAnchor:self.soundTypeSelector.bottomAnchor constant:10],
-        [self.cycleBuiltInSoundButton.centerXAnchor constraintEqualToAnchor:contentView.centerXAnchor],
-        [self.cycleBuiltInSoundButton.widthAnchor constraintEqualToConstant:170],
-        [self.cycleBuiltInSoundButton.heightAnchor constraintEqualToConstant:32],
-        
         // Sound file selection button
         [self.selectSoundButton.topAnchor constraintEqualToAnchor:self.soundTypeSelector.bottomAnchor constant:10],
         [self.selectSoundButton.centerXAnchor constraintEqualToAnchor:contentView.centerXAnchor],
@@ -308,18 +280,13 @@
     NSInteger selectedSegment = [control selectedSegment];
 
     if (selectedSegment == 0) { // Built-in
-        [self.cycleBuiltInSoundButton setHidden:NO]; // Show cycle button for built-in
-        [self.selectSoundButton setHidden:YES]; // Hide custom select button
-        
-        // Use the current built-in sound
-        self.selectedAudioFile = self.builtInSoundFiles[self.currentBuiltInSoundIndex];
-        NSString *fileName = [[self.selectedAudioFile lastPathComponent] stringByDeletingPathExtension];
-        [self.selectedSoundLabel setStringValue:[NSString stringWithFormat:@"Built-in: %@.mp3", fileName]];
+        [self.selectSoundButton setHidden:YES]; // Hide the button for built-in
+        [self.selectedSoundLabel setStringValue:@"Built-in: trigger.mp3"];
         [self.selectedSoundLabel setTextColor:[NSColor labelColor]];
+        self.selectedAudioFile = @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger.mp3";
         [self.audioToggleButton setEnabled:YES];
     } else { // Custom
-        [self.cycleBuiltInSoundButton setHidden:YES]; // Hide cycle button for custom
-        [self.selectSoundButton setHidden:NO]; // Show custom select button
+        [self.selectSoundButton setHidden:NO]; // Show the button for custom
         [self.selectSoundButton setTitle:@"Select Custom File"];
         [self.selectedSoundLabel setStringValue:@"No custom file selected"];
         [self.selectedSoundLabel setTextColor:[NSColor secondaryLabelColor]];
@@ -328,24 +295,17 @@
     }
 }
 
-- (IBAction)cycleBuiltInSound:(id)sender {
-    // Cycle to the next built-in sound
-    self.currentBuiltInSoundIndex = (self.currentBuiltInSoundIndex + 1) % self.builtInSoundFiles.count;
-    self.selectedAudioFile = self.builtInSoundFiles[self.currentBuiltInSoundIndex];
-    
-    NSString *fileName = [[self.selectedAudioFile lastPathComponent] stringByDeletingPathExtension];
-    [self.selectedSoundLabel setStringValue:[NSString stringWithFormat:@"Built-in: %@.mp3", fileName]];
-    [self.selectedSoundLabel setTextColor:[NSColor labelColor]];
-    
-    NSLog(@"Cycled to built-in audio file: %@", fileName);
-}
-
 - (IBAction)selectSoundFile:(id)sender {
     NSInteger selectedSegment = [self.soundTypeSelector selectedSegment];
 
     if (selectedSegment == 0) { // Built-in sound
-        // This shouldn't be called when on built-in mode, but just in case
-        [self cycleBuiltInSound:sender];
+        // Just confirm the built-in sound
+        self.selectedAudioFile = @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger.mp3";
+        [self.selectedSoundLabel setStringValue:@"Built-in: trigger.mp3"];
+        [self.selectedSoundLabel setTextColor:[NSColor labelColor]];
+        [self.audioToggleButton setEnabled:YES];
+        [self.audioStatusLabel setStringValue:@"Audio ready - Click 'Start Audio' to enable threshold alerts"];
+        NSLog(@"Using built-in audio file: trigger.mp3");
     } else { // Custom sound
         NSOpenPanel *openPanel = [NSOpenPanel openPanel];
         [openPanel setAllowedFileTypes:@[@"wav", @"mp3", @"m4a", @"aiff", @"aac"]];

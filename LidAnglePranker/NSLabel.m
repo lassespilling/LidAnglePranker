@@ -1,6 +1,6 @@
 //
 //  NSLabel.m
-//  LidAngleSensor
+//  LidAnglePranker
 //
 //  Created by Sam on 2025-09-06.
 //
