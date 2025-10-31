@@ -33,6 +33,7 @@
 @property (assign, nonatomic) BOOL hasTriggeredForCurrentCrossing;
 @property (assign, nonatomic) BOOL isLoopEnabled;
 @property (strong, nonatomic) NSButton *loopToggleButton;
+@property (strong, nonatomic) NSButton *builtInAudioToggleButton;
 @property (strong, nonatomic) AVAudioPlayer *audioPlayer;
 @end
 
@@ -40,11 +41,15 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Set default built-in sound
-    self.selectedAudioFile = @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger.mp3";
+    NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"trigger" ofType:@"mp3"];
+    self.selectedAudioFile = bundlePath ?: @"/Users/lasse/Desktop/LidAnglePranker/LidAnglePranker/trigger.mp3";
 
     [self createWindow];
     [self initializeLidSensor];
     [self startUpdatingDisplay];
+
+    // Preload the default audio file to eliminate first-time delay
+    [self preloadAudioPlayer];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
@@ -158,6 +163,16 @@
     [self.loopToggleButton setEnabled:YES];
     [contentView addSubview:self.loopToggleButton];
 
+    // Create built-in audio toggle button
+    self.builtInAudioToggleButton = [[NSButton alloc] init];
+    [self.builtInAudioToggleButton setTitle:@"trigger.mp3"];
+    [self.builtInAudioToggleButton setBezelStyle:NSBezelStyleRounded];
+    [self.builtInAudioToggleButton setTarget:self];
+    [self.builtInAudioToggleButton setAction:@selector(toggleBuiltInAudio:)];
+    [self.builtInAudioToggleButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [self.builtInAudioToggleButton setEnabled:YES];
+    [contentView addSubview:self.builtInAudioToggleButton];
+
     // Create audio status label
     self.audioStatusLabel = [[NSLabel alloc] init];
     [self.audioStatusLabel setStringValue:@"Audio ready - Click 'Start Audio' to enable threshold alerts"];
@@ -225,8 +240,14 @@
         [self.loopToggleButton.widthAnchor constraintEqualToConstant:120],
         [self.loopToggleButton.heightAnchor constraintEqualToConstant:32],
 
+        // Built-in audio toggle button
+        [self.builtInAudioToggleButton.topAnchor constraintEqualToAnchor:self.loopToggleButton.bottomAnchor constant:8],
+        [self.builtInAudioToggleButton.centerXAnchor constraintEqualToAnchor:contentView.centerXAnchor],
+        [self.builtInAudioToggleButton.widthAnchor constraintEqualToConstant:120],
+        [self.builtInAudioToggleButton.heightAnchor constraintEqualToConstant:32],
+
         // Audio status label
-        [self.audioStatusLabel.topAnchor constraintEqualToAnchor:self.loopToggleButton.bottomAnchor constant:8],
+        [self.audioStatusLabel.topAnchor constraintEqualToAnchor:self.builtInAudioToggleButton.bottomAnchor constant:8],
         [self.audioStatusLabel.centerXAnchor constraintEqualToAnchor:contentView.centerXAnchor],
         [self.audioStatusLabel.widthAnchor constraintLessThanOrEqualToAnchor:contentView.widthAnchor constant:-40],
 
@@ -281,12 +302,16 @@
 
     if (selectedSegment == 0) { // Built-in
         [self.selectSoundButton setHidden:YES]; // Hide the button for built-in
+        [self.builtInAudioToggleButton setHidden:NO]; // Show built-in audio toggle
         [self.selectedSoundLabel setStringValue:@"Built-in: trigger.mp3"];
         [self.selectedSoundLabel setTextColor:[NSColor labelColor]];
-        self.selectedAudioFile = @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger.mp3";
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"trigger" ofType:@"mp3"];
+    self.selectedAudioFile = bundlePath ?: @"/Users/lasse/Desktop/LidAnglePranker/LidAnglePranker/trigger.mp3";
         [self.audioToggleButton setEnabled:YES];
+        [self preloadAudioPlayer];
     } else { // Custom
         [self.selectSoundButton setHidden:NO]; // Show the button for custom
+        [self.builtInAudioToggleButton setHidden:YES]; // Hide built-in audio toggle
         [self.selectSoundButton setTitle:@"Select Custom File"];
         [self.selectedSoundLabel setStringValue:@"No custom file selected"];
         [self.selectedSoundLabel setTextColor:[NSColor secondaryLabelColor]];
@@ -300,11 +325,13 @@
 
     if (selectedSegment == 0) { // Built-in sound
         // Just confirm the built-in sound
-        self.selectedAudioFile = @"/Users/lasse/Downloads/LidAnglePranker/LidAnglePranker/trigger.mp3";
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"trigger" ofType:@"mp3"];
+    self.selectedAudioFile = bundlePath ?: @"/Users/lasse/Desktop/LidAnglePranker/LidAnglePranker/trigger.mp3";
         [self.selectedSoundLabel setStringValue:@"Built-in: trigger.mp3"];
         [self.selectedSoundLabel setTextColor:[NSColor labelColor]];
         [self.audioToggleButton setEnabled:YES];
         [self.audioStatusLabel setStringValue:@"Audio ready - Click 'Start Audio' to enable threshold alerts"];
+        [self preloadAudioPlayer];
         NSLog(@"Using built-in audio file: trigger.mp3");
     } else { // Custom sound
         NSOpenPanel *openPanel = [NSOpenPanel openPanel];
@@ -326,6 +353,8 @@
             [self.audioToggleButton setEnabled:YES];
             [self.audioStatusLabel setStringValue:@"Audio ready - Click 'Start Audio' to enable threshold alerts"];
 
+            // Preload the newly selected custom audio file
+            [self preloadAudioPlayer];
             NSLog(@"Selected custom audio file: %@", self.selectedAudioFile);
         }
     }
@@ -360,6 +389,51 @@
     }
 }
 
+- (IBAction)toggleBuiltInAudio:(id)sender {
+    // Get current button title to determine which audio file to use
+    NSString *currentTitle = [self.builtInAudioToggleButton title];
+
+    if ([currentTitle isEqualToString:@"trigger.mp3"]) {
+        // Switch to trigger2.mp3
+        [self.builtInAudioToggleButton setTitle:@"trigger2.mp3"];
+        [self.selectedSoundLabel setStringValue:@"Built-in: trigger2.mp3"];
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"trigger2" ofType:@"mp3"];
+        self.selectedAudioFile = bundlePath ?: @"/Users/lasse/Desktop/LidAnglePranker/LidAnglePranker/trigger2.mp3";
+    } else {
+        // Switch to trigger.mp3
+        [self.builtInAudioToggleButton setTitle:@"trigger.mp3"];
+        [self.selectedSoundLabel setStringValue:@"Built-in: trigger.mp3"];
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"trigger" ofType:@"mp3"];
+        self.selectedAudioFile = bundlePath ?: @"/Users/lasse/Desktop/LidAnglePranker/LidAnglePranker/trigger.mp3";
+    }
+
+    // Preload the newly selected audio file
+    [self preloadAudioPlayer];
+}
+
+- (void)preloadAudioPlayer {
+    if (!self.selectedAudioFile) {
+        return;
+    }
+
+    NSError *error;
+    NSURL *audioURL = [NSURL fileURLWithPath:self.selectedAudioFile];
+    self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:audioURL error:&error];
+
+    if (error) {
+        NSLog(@"Error preloading audio player: %@", error.localizedDescription);
+        return;
+    }
+
+    // Set delegate to detect when audio finishes
+    self.audioPlayer.delegate = self;
+
+    // Preload the audio by calling prepareToPlay
+    [self.audioPlayer prepareToPlay];
+
+    NSLog(@"Audio player preloaded successfully for: %@", self.selectedAudioFile);
+}
+
 - (void)playAudioAlert {
     if (!self.isAudioActive || !self.selectedAudioFile) {
         return;
@@ -370,19 +444,17 @@
         return;
     }
 
-    NSError *error;
-    NSURL *audioURL = [NSURL fileURLWithPath:self.selectedAudioFile];
-    self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:audioURL error:&error];
+    // If audio player doesn't exist or URL doesn't match, preload it
+    if (!self.audioPlayer || ![self.audioPlayer.url.path isEqualToString:self.selectedAudioFile]) {
+        [self preloadAudioPlayer];
+    }
 
-    if (error) {
-        NSLog(@"Error creating audio player: %@", error.localizedDescription);
+    if (!self.audioPlayer) {
+        NSLog(@"Error: Audio player failed to preload");
         [self.audioStatusLabel setStringValue:@"Error playing audio file"];
         [self.audioStatusLabel setTextColor:[NSColor systemRedColor]];
         return;
     }
-
-    // Set delegate to detect when audio finishes
-    self.audioPlayer.delegate = self;
     
     // Configure looping based on toggle state
     if (self.isLoopEnabled) {
